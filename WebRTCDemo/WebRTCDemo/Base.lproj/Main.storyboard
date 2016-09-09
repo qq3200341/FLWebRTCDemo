@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="fJT-Dm-LCj">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+    </dependencies>
+    <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="iCR-8I-YyN">
+            <objects>
+                <navigationController id="fJT-Dm-LCj" sceneMemberID="viewController">
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="hJ7-AJ-vjN">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="88v-Mn-aOD"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="4fg-5u-ElX" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-164" y="429"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="192.168.2.5" borderStyle="roundedRect" placeholder="请输入服务器地址" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="eSK-nb-AH7">
+                                <rect key="frame" x="85" y="112" width="209" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="jwe-71-3mc"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Server:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xp5-qf-vce">
+                                <rect key="frame" x="27" y="116" width="50" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="VkY-2d-d8G"/>
+                                    <constraint firstAttribute="width" constant="50" id="uyd-Fk-aP3"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" borderStyle="roundedRect" placeholder="请输入房间号" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="zPJ-JS-wFI">
+                                <rect key="frame" x="75" y="170" width="219" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="oTy-2L-wJZ"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="房间:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tdf-Cb-ue0">
+                                <rect key="frame" x="27" y="174" width="40" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="C57-4E-NlB"/>
+                                    <constraint firstAttribute="width" constant="40" id="rGw-BC-odk"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iPa-qE-e8h">
+                                <rect key="frame" x="120" y="240" width="81" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="81" id="JEC-rn-dhO"/>
+                                    <constraint firstAttribute="height" constant="30" id="N2x-U3-keL"/>
+                                </constraints>
+                                <state key="normal" title="加入房间"/>
+                                <connections>
+                                    <action selector="joinRoom:" destination="BYZ-38-t0r" eventType="touchUpInside" id="XMy-fz-LKj"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="iPa-qE-e8h" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="0Gt-jr-10U"/>
+                            <constraint firstAttribute="trailing" secondItem="eSK-nb-AH7" secondAttribute="trailing" constant="26" id="2oX-Z4-b7e"/>
+                            <constraint firstItem="Xp5-qf-vce" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="27" id="DcA-Qy-qXI"/>
+                            <constraint firstItem="eSK-nb-AH7" firstAttribute="centerY" secondItem="Xp5-qf-vce" secondAttribute="centerY" id="GJh-uX-Z92"/>
+                            <constraint firstItem="iPa-qE-e8h" firstAttribute="top" secondItem="zPJ-JS-wFI" secondAttribute="bottom" constant="40" id="HVH-XY-t4l"/>
+                            <constraint firstItem="zPJ-JS-wFI" firstAttribute="centerY" secondItem="tdf-Cb-ue0" secondAttribute="centerY" id="I53-ba-Tji"/>
+                            <constraint firstItem="Xp5-qf-vce" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="96" id="Q0v-zj-2tx"/>
+                            <constraint firstItem="eSK-nb-AH7" firstAttribute="leading" secondItem="Xp5-qf-vce" secondAttribute="trailing" constant="8" id="QcD-CI-Mtz"/>
+                            <constraint firstItem="tdf-Cb-ue0" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="27" id="bUr-84-rfB"/>
+                            <constraint firstItem="tdf-Cb-ue0" firstAttribute="top" secondItem="Xp5-qf-vce" secondAttribute="bottom" constant="37" id="hNT-Cw-I4c"/>
+                            <constraint firstAttribute="trailing" secondItem="zPJ-JS-wFI" secondAttribute="trailing" constant="26" id="k1S-dG-dA8"/>
+                            <constraint firstItem="zPJ-JS-wFI" firstAttribute="leading" secondItem="tdf-Cb-ue0" secondAttribute="trailing" constant="8" id="rb4-Bq-5ha"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="Wqt-5f-kYb"/>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics"/>
+                    <connections>
+                        <outlet property="roomTf" destination="zPJ-JS-wFI" id="plT-dw-Vob"/>
+                        <outlet property="serverTf" destination="eSK-nb-AH7" id="EoA-s0-1jn"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="288" y="429"/>
+        </scene>
+    </scenes>
+</document>
