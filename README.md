@@ -1,0 +1,2 @@
+# FLWebRTCDemo
+基于webRTC的音视频通话，服务端采用开源项目SkyRTC，未实现stunserver和turnserver服务器，因此NAT环境下不可使用。
