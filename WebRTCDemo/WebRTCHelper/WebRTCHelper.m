@@ -15,7 +15,7 @@ typedef enum : NSUInteger {
     RoleCallee,
 } Role;
 
-@interface WebRTCHelper ()<RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate>
+@interface WebRTCHelper ()<RTCPeerConnectionDelegate>
 
 @end
 
@@ -113,9 +113,9 @@ typedef enum : NSUInteger {
  */
 - (void)createLocalStream
 {
-    _localStream = [_factory mediaStreamWithLabel:@"ARDAMS"];
+    _localStream = [_factory mediaStreamWithStreamId:@"ARDAMS"];
     //音频
-    RTCAudioTrack *audioTrack = [_factory audioTrackWithID:@"ARDAMSa0"];
+    RTCAudioTrack *audioTrack = [_factory audioTrackWithTrackId:@"ARDAMSa0"];
     [_localStream addAudioTrack:audioTrack];
     //视频
     
@@ -135,9 +135,8 @@ typedef enum : NSUInteger {
     {
         if (device)
         {
-            RTCVideoCapturer *capturer = [RTCVideoCapturer capturerWithDeviceName:device.localizedName];
-            RTCVideoSource *videoSource = [_factory videoSourceWithCapturer:capturer constraints:[self localVideoConstraints]];
-            RTCVideoTrack *videoTrack = [_factory videoTrackWithID:@"ARDAMSv0" source:videoSource];
+            RTCVideoSource *videoSource = [_factory avFoundationVideoSourceWithConstraints:[self localVideoConstraints]];
+            RTCVideoTrack *videoTrack = [_factory videoTrackWithSource:videoSource trackId:@"ARDAMSv0"];
             
             [_localStream addVideoTrack:videoTrack];
             if ([_delegate respondsToSelector:@selector(webRTCHelper:setLocalStream:userId:)])
@@ -160,17 +159,18 @@ typedef enum : NSUInteger {
  */
 - (RTCMediaConstraints *)localVideoConstraints
 {
-    RTCPair *maxWidth = [[RTCPair alloc] initWithKey:@"maxWidth" value:@"640"];
-    RTCPair *minWidth = [[RTCPair alloc] initWithKey:@"minWidth" value:@"640"];
-    
-    RTCPair *maxHeight = [[RTCPair alloc] initWithKey:@"maxHeight" value:@"480"];
-    RTCPair *minHeight = [[RTCPair alloc] initWithKey:@"minHeight" value:@"480"];
-    
-    RTCPair *minFrameRate = [[RTCPair alloc] initWithKey:@"minFrameRate" value:@"15"];
-    
-    NSArray *mandatory = @[maxWidth, minWidth, maxHeight, minHeight, minFrameRate];
-    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatory optionalConstraints:nil];
-    return constraints;
+    return nil;
+//    RTCPair *maxWidth = [[RTCPair alloc] initWithKey:@"maxWidth" value:@"640"];
+//    RTCPair *minWidth = [[RTCPair alloc] initWithKey:@"minWidth" value:@"640"];
+//    
+//    RTCPair *maxHeight = [[RTCPair alloc] initWithKey:@"maxHeight" value:@"480"];
+//    RTCPair *minHeight = [[RTCPair alloc] initWithKey:@"minHeight" value:@"480"];
+//    
+//    RTCPair *minFrameRate = [[RTCPair alloc] initWithKey:@"minFrameRate" value:@"15"];
+//    
+//    NSArray *mandatory = @[maxWidth, minWidth, maxHeight, minHeight, minFrameRate];
+//    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatory optionalConstraints:nil];
+//    return constraints;
 }
 /**
  *  为所有连接创建offer
@@ -180,7 +180,31 @@ typedef enum : NSUInteger {
     [_connectionDic enumerateKeysAndObjectsUsingBlock:^(NSString *key, RTCPeerConnection *obj, BOOL * _Nonnull stop) {
         _currentId = key;
         _role = RoleCaller;
-        [obj createOfferWithDelegate:self constraints:[self offerOranswerConstraint]];
+        __weak RTCPeerConnection *weakPeerConnection = obj;
+        [obj offerForConstraints:[self offerOranswerConstraint] completionHandler:^(RTCSessionDescription * _Nullable sdp, NSError * _Nullable error) {
+            if (error)
+            {
+                NSLog(@"%@",error);
+            }
+            else
+            {
+                RTCSessionDescription *newSdp = [self descriptionForDescription:sdp preferredVideoCodec:@"H264"];
+                __weak RTCPeerConnection *weakPeerConnection2 = weakPeerConnection;
+                [weakPeerConnection setLocalDescription:newSdp completionHandler:^(NSError * _Nullable error) {
+                    if (error)
+                    {
+                        NSLog(@"%@",error);
+                    }
+                    else
+                    {
+                        NSString *sdpString = weakPeerConnection2.localDescription.sdp;
+                        NSDictionary *dic = @{@"eventName": @"__offer", @"data": @{@"sdp": @{@"type": @"offer", @"sdp": sdpString}, @"socketId": _currentId}};
+                        NSData *data = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
+                        [_socket send:data];
+                    }
+                }];
+            }
+        }];
     }];
 }
 /**
@@ -217,10 +241,10 @@ typedef enum : NSUInteger {
 {
     if (!_factory)
     {
-        [RTCPeerConnectionFactory initializeSSL];
         _factory = [[RTCPeerConnectionFactory alloc] init];
     }
-    RTCPeerConnection *connection = [_factory peerConnectionWithICEServers:nil constraints:[self peerConnectionConstraints] delegate:self];
+    RTCConfiguration *config = [[RTCConfiguration alloc] init];
+    RTCPeerConnection *connection = [_factory peerConnectionWithConfiguration:config constraints:[self peerConnectionConstraints] delegate:self];
     return connection;
 }
 /**
@@ -230,7 +254,7 @@ typedef enum : NSUInteger {
  */
 - (RTCMediaConstraints *)peerConnectionConstraints
 {
-    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:nil optionalConstraints:@[[[RTCPair alloc] initWithKey:@"DtlsSrtpKeyAgreement" value:@"true"]]];
+    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:nil optionalConstraints:@{@"DtlsSrtpKeyAgreement" : @"true"}];
     return constraints;
 }
 /**
@@ -238,73 +262,99 @@ typedef enum : NSUInteger {
  */
 - (RTCMediaConstraints *)offerOranswerConstraint
 {
-    NSMutableArray *array = [NSMutableArray array];
-    RTCPair *receiveAudio = [[RTCPair alloc] initWithKey:@"OfferToReceiveAudio" value:@"true"];
-    [array addObject:receiveAudio];
-    
-    NSString *video = @"true";
-    RTCPair *receiveVideo = [[RTCPair alloc] initWithKey:@"OfferToReceiveVideo" value:video];
-    [array addObject:receiveVideo];
-    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:array optionalConstraints:nil];
+    RTCMediaConstraints *constraints = [[RTCMediaConstraints alloc] initWithMandatoryConstraints:@{@"OfferToReceiveAudio" : @"true",@"OfferToReceiveVideo" : @"true"} optionalConstraints:nil];
     return constraints;
 }
 
-#pragma mark--RTCSessionDescriptionDelegate
-// Called when creating a session.
-- (void)peerConnection:(RTCPeerConnection *)peerConnection
-didCreateSessionDescription:(RTCSessionDescription *)sdp
-                 error:(NSError *)error
+#pragma mark--Tool
+// Updates the original SDP description to instead prefer the specified video
+// codec. We do this by placing the specified codec at the beginning of the
+// codec list if it exists in the sdp.
+- (RTCSessionDescription *)descriptionForDescription:(RTCSessionDescription *)description preferredVideoCodec:(NSString *)codec
 {
-    NSLog(@"%s",__func__);
-    [peerConnection setLocalDescriptionWithDelegate:self sessionDescription:sdp];
+    NSString *sdpString = description.sdp;
+    NSString *lineSeparator = @"\n";
+    NSString *mLineSeparator = @" ";
+    // Copied from PeerConnectionClient.java.
+    // TODO(tkchin): Move this to a shared C++ file.
+    NSMutableArray *lines =
+    [NSMutableArray arrayWithArray:
+     [sdpString componentsSeparatedByString:lineSeparator]];
+    NSInteger mLineIndex = -1;
+    NSString *codecRtpMap = nil;
+    // a=rtpmap:<payload type> <encoding name>/<clock rate>
+    // [/<encoding parameters>]
+    NSString *pattern =
+    [NSString stringWithFormat:@"^a=rtpmap:(\\d+) %@(/\\d+)+[\r]?$", codec];
+    NSRegularExpression *regex =
+    [NSRegularExpression regularExpressionWithPattern:pattern
+                                              options:0
+                                                error:nil];
+    for (NSInteger i = 0; (i < lines.count) && (mLineIndex == -1 || !codecRtpMap);
+         ++i) {
+        NSString *line = lines[i];
+        if ([line hasPrefix:@"m=video"]) {
+            mLineIndex = i;
+            continue;
+        }
+        NSTextCheckingResult *codecMatches =
+        [regex firstMatchInString:line
+                          options:0
+                            range:NSMakeRange(0, line.length)];
+        if (codecMatches) {
+            codecRtpMap =
+            [line substringWithRange:[codecMatches rangeAtIndex:1]];
+            continue;
+        }
+    }
+    if (mLineIndex == -1) {
+        RTCLog(@"No m=video line, so can't prefer %@", codec);
+        return description;
+    }
+    if (!codecRtpMap) {
+        RTCLog(@"No rtpmap for %@", codec);
+        return description;
+    }
+    NSArray *origMLineParts =
+    [lines[mLineIndex] componentsSeparatedByString:mLineSeparator];
+    if (origMLineParts.count > 3) {
+        NSMutableArray *newMLineParts =
+        [NSMutableArray arrayWithCapacity:origMLineParts.count];
+        NSInteger origPartIndex = 0;
+        // Format is: m=<media> <port> <proto> <fmt> ...
+        [newMLineParts addObject:origMLineParts[origPartIndex++]];
+        [newMLineParts addObject:origMLineParts[origPartIndex++]];
+        [newMLineParts addObject:origMLineParts[origPartIndex++]];
+        [newMLineParts addObject:codecRtpMap];
+        for (; origPartIndex < origMLineParts.count; ++origPartIndex) {
+            if (![codecRtpMap isEqualToString:origMLineParts[origPartIndex]]) {
+                [newMLineParts addObject:origMLineParts[origPartIndex]];
+            }
+        }
+        NSString *newMLine =
+        [newMLineParts componentsJoinedByString:mLineSeparator];
+        [lines replaceObjectAtIndex:mLineIndex
+                         withObject:newMLine];
+    } else {
+        RTCLogWarning(@"Wrong SDP media description format: %@", lines[mLineIndex]);
+    }
+    NSString *mangledSdpString = [lines componentsJoinedByString:lineSeparator];
+    return [[RTCSessionDescription alloc] initWithType:description.type
+                                                   sdp:mangledSdpString];
 }
 
-// Called when setting a local or remote description.
-- (void)peerConnection:(RTCPeerConnection *)peerConnection
-didSetSessionDescriptionWithError:(NSError *)error
-{
-    NSLog(@"%s",__func__);
-    if (peerConnection.signalingState == RTCSignalingHaveRemoteOffer)
-    {
-        [peerConnection createAnswerWithDelegate:self constraints:[self offerOranswerConstraint]];
-    }
-    else if (peerConnection.signalingState == RTCSignalingHaveLocalOffer)
-    {
-        if (_role == RoleCallee)
-        {
-            NSDictionary *dic = @{@"eventName": @"__answer", @"data": @{@"sdp": @{@"type": @"answer", @"sdp": peerConnection.localDescription.description}, @"socketId": _currentId}};
-            NSData *data = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
-            [_socket send:data];
-        }
-        else if(_role == RoleCaller)
-        {
-            NSDictionary *dic = @{@"eventName": @"__offer", @"data": @{@"sdp": @{@"type": @"offer", @"sdp": peerConnection.localDescription.description}, @"socketId": _currentId}};
-            NSData *data = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
-            [_socket send:data];
-        }
-    }
-    else if (peerConnection.signalingState == RTCSignalingStable)
-    {
-        if (_role == RoleCallee)
-        {
-            NSDictionary *dic = @{@"eventName": @"__answer", @"data": @{@"sdp": @{@"type": @"answer", @"sdp": peerConnection.localDescription.description}, @"socketId": _currentId}};
-            NSData *data = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
-            [_socket send:data];
-        }
-    }
-}
 #pragma mark--RTCPeerConnectionDelegate
-// Triggered when the SignalingState changed.
+/** Called when the SignalingState changed. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
- signalingStateChanged:(RTCSignalingState)stateChanged
+didChangeSignalingState:(RTCSignalingState)stateChanged
 {
     NSLog(@"%s",__func__);
-    NSLog(@"%d", stateChanged);
+    NSLog(@"%ld", (long)stateChanged);
 }
 
-// Triggered when media is received on a new stream from remote peer.
+/** Called when media is received on a new stream from remote peer. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
-           addedStream:(RTCMediaStream *)stream
+          didAddStream:(RTCMediaStream *)stream
 {
     NSLog(@"%s",__func__);
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -315,38 +365,38 @@ didSetSessionDescriptionWithError:(NSError *)error
     });
 }
 
-// Triggered when a remote peer close a stream.
+/** Called when a remote peer closes a stream. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
-         removedStream:(RTCMediaStream *)stream
+       didRemoveStream:(RTCMediaStream *)stream
 {
     NSLog(@"%s",__func__);
 }
 
-// Triggered when renegotiation is needed, for example the ICE has restarted.
-- (void)peerConnectionOnRenegotiationNeeded:(RTCPeerConnection *)peerConnection
+/** Called when negotiation is needed, for example ICE has restarted. */
+- (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection
 {
     NSLog(@"%s",__func__);
 }
 
-// Called any time the ICEConnectionState changes.
+/** Called any time the IceConnectionState changes. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
-  iceConnectionChanged:(RTCICEConnectionState)newState
+didChangeIceConnectionState:(RTCIceConnectionState)newState
 {
     NSLog(@"%s",__func__);
-    NSLog(@"%d", newState);
+    NSLog(@"%ld", (long)newState);
 }
 
-// Called any time the ICEGatheringState changes.
+/** Called any time the IceGatheringState changes. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
-   iceGatheringChanged:(RTCICEGatheringState)newState
+didChangeIceGatheringState:(RTCIceGatheringState)newState
 {
     NSLog(@"%s",__func__);
-    NSLog(@"%d", newState);
+    NSLog(@"%ld", (long)newState);
 }
 
-// New Ice candidate have been found.
+/** New ice candidate has been found. */
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
-       gotICECandidate:(RTCICECandidate *)candidate
+didGenerateIceCandidate:(RTCIceCandidate *)candidate
 {
     NSLog(@"%s",__func__);
     NSDictionary *dic = @{@"eventName": @"__ice_candidate", @"data": @{@"label": [NSNumber numberWithInteger:candidate.sdpMLineIndex], @"candidate": candidate.sdp, @"socketId": _currentId}};
@@ -354,9 +404,16 @@ didSetSessionDescriptionWithError:(NSError *)error
     [_socket send:data];
 }
 
-// New data channel has been opened.
-- (void)peerConnection:(RTCPeerConnection*)peerConnection didOpenDataChannel:(RTCDataChannel*)dataChannel
+/** Called when a group of local Ice candidates have been removed. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+didRemoveIceCandidates:(NSArray<RTCIceCandidate *> *)candidates
+{
+    NSLog(@"%s",__func__);
+}
 
+/** New data channel has been opened. */
+- (void)peerConnection:(RTCPeerConnection *)peerConnection
+    didOpenDataChannel:(RTCDataChannel *)dataChannel
 {
     NSLog(@"%s",__func__);
 }
@@ -375,7 +432,6 @@ didSetSessionDescriptionWithError:(NSError *)error
         _myId = dataDic[@"you"];
         if (!_factory)
         {
-            [RTCPeerConnectionFactory initializeSSL];
             _factory = [[RTCPeerConnectionFactory alloc] init];
         }
         if (!_localStream)
@@ -390,11 +446,11 @@ didSetSessionDescriptionWithError:(NSError *)error
     {
         NSDictionary *dataDic = dic[@"data"];
         NSString *socketId = dataDic[@"socketId"];
-        NSInteger sdpMLineIndex = [dataDic[@"label"] integerValue];
+        int sdpMLineIndex = [dataDic[@"label"] intValue];
         NSString *sdp = dataDic[@"candidate"];
-        RTCICECandidate *candidate = [[RTCICECandidate alloc] initWithMid:nil index:sdpMLineIndex sdp:sdp];
+        RTCIceCandidate *candidate = [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:@""];
         RTCPeerConnection *peerConnection = [_connectionDic objectForKey:socketId];
-        [peerConnection addICECandidate:candidate];
+        [peerConnection addIceCandidate:candidate];
     }
     else if ([eventName isEqualToString:@"_new_peer"])
     {
@@ -423,8 +479,43 @@ didSetSessionDescriptionWithError:(NSError *)error
         NSString *type = sdpDic[@"type"];
         NSString *socketId = dataDic[@"socketId"];
         RTCPeerConnection *peerConnection = [_connectionDic objectForKey:socketId];
-        RTCSessionDescription *remoteSdp = [[RTCSessionDescription alloc] initWithType:type sdp:sdp];
-        [peerConnection setRemoteDescriptionWithDelegate:self sessionDescription:remoteSdp];
+        RTCSessionDescription *remoteSdp = [[RTCSessionDescription alloc] initWithType:[type isEqualToString:@"offer"] ? RTCSdpTypeOffer : RTCSdpTypeAnswer sdp:sdp];
+        RTCSessionDescription *newSdp = [self descriptionForDescription:remoteSdp preferredVideoCodec:@"H264"];
+        __weak RTCPeerConnection * weakPeerConnection = peerConnection;
+        [peerConnection setRemoteDescription:newSdp completionHandler:^(NSError * _Nullable error) {
+            if (error)
+            {
+                NSLog(@"%@", error);
+            }
+            else
+            {
+                __weak RTCPeerConnection * weakPeerConnection2 = weakPeerConnection;
+                [weakPeerConnection answerForConstraints:[self offerOranswerConstraint] completionHandler:^(RTCSessionDescription * _Nullable sdp, NSError * _Nullable error) {
+                    if (error)
+                    {
+                        NSLog(@"%@",error);
+                    }
+                    else
+                    {
+                        __weak RTCPeerConnection * weakPeerConnection3 = weakPeerConnection2;
+                        RTCSessionDescription *newSdp = [self descriptionForDescription:sdp preferredVideoCodec:@"H264"];
+                        [weakPeerConnection2 setLocalDescription:newSdp completionHandler:^(NSError * _Nullable error) {
+                            if (error)
+                            {
+                                NSLog(@"%@",error);
+                            }
+                            else
+                            {
+                                NSString *sdpString = weakPeerConnection3.localDescription.sdp;
+                                NSDictionary *dic = @{@"eventName": @"__answer", @"data": @{@"sdp": @{@"type": @"answer", @"sdp": sdpString}, @"socketId": _currentId}};
+                                NSData *data = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
+                                [_socket send:data];
+                            }
+                        }];
+                    }
+                }];
+            }
+        }];
         _currentId = socketId;
         _role = RoleCallee;
     }
@@ -436,8 +527,11 @@ didSetSessionDescriptionWithError:(NSError *)error
         NSString *type = sdpDic[@"type"];
         NSString *socketId = dataDic[@"socketId"];
         RTCPeerConnection *peerConnection = [_connectionDic objectForKey:socketId];
-        RTCSessionDescription *remoteSdp = [[RTCSessionDescription alloc] initWithType:type sdp:sdp];
-        [peerConnection setRemoteDescriptionWithDelegate:self sessionDescription:remoteSdp];
+        RTCSessionDescription *remoteSdp = [[RTCSessionDescription alloc] initWithType:[type isEqualToString:@"offer"] ? RTCSdpTypeOffer : RTCSdpTypeAnswer sdp:sdp];
+        RTCSessionDescription *newSdp = [self descriptionForDescription:remoteSdp preferredVideoCodec:@"H264"];
+        [peerConnection setRemoteDescription:newSdp completionHandler:^(NSError * _Nullable error) {
+            
+        }];
     }
 }
 - (void)webSocketDidOpen:(SRWebSocket *)webSocket

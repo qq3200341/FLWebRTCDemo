@@ -8,21 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import <SocketRocket.h>
-#import "RTCMediaStream.h"
-#import "RTCPeerConnectionFactory.h"
-#import "RTCPeerConnection.h"
-#import "RTCPair.h"
-#import "RTCMediaConstraints.h"
-#import "RTCAudioTrack.h"
-#import "RTCVideoTrack.h"
-#import "RTCVideoCapturer.h"
-#import "RTCSessionDescription.h"
-#import "RTCSessionDescriptionDelegate.h"
-#import "RTCEAGLVideoView.h"
-#import "RTCICEServer.h"
-#import "RTCVideoSource.h"
-#import "RTCAVFoundationVideoSource.h"
-#import "RTCICECandidate.h"
+#import <WebRTC/WebRTC.h>
+
+#ifdef DEBUG
+# define NSLog(fmt, ...) NSLog((@" 方法:%s 行号:%d 日志内容:" fmt),  __FUNCTION__, __LINE__, ##__VA_ARGS__);
+#else
+# define NSLog(...);
+#endif
 
 @protocol WebRTCHelperDelegate;
 

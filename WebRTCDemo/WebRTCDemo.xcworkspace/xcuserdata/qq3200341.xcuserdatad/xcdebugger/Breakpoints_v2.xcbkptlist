@@ -4,13 +4,99 @@
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            scope = "0"
-            stopOnStyle = "0">
+            filePath = "WebRTCHelper/WebRTCHelper.m"
+            timestampString = "503926264.39606"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
+            landmarkName = "-createOffers"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "__28-[WebRTCHelper createOffers]_block_invoke_2"
+                  moduleName = "WebRTCDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/qq3200341/Desktop/FLWebRTCDemo/WebRTCDemo/WebRTCHelper/WebRTCHelper.m"
+                  timestampString = "504414867.428207"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "193"
+                  endingLineNumber = "193"
+                  offsetFromSymbolStart = "220">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "__28-[WebRTCHelper createOffers]_block_invoke_3"
+                  moduleName = "WebRTCDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/qq3200341/Desktop/FLWebRTCDemo/WebRTCDemo/WebRTCHelper/WebRTCHelper.m"
+                  timestampString = "504414867.42969"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "194"
+                  endingLineNumber = "194"
+                  offsetFromSymbolStart = "72">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "WebRTCHelper/WebRTCHelper.m"
+            timestampString = "503926284.230232"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "532"
+            endingLineNumber = "532"
+            landmarkName = "-webSocket:didReceiveMessage:"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[WebRTCHelper webSocket:didReceiveMessage:]"
+                  moduleName = "WebRTCDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/qq3200341/Desktop/FLWebRTCDemo/WebRTCDemo/WebRTCHelper/WebRTCHelper.m"
+                  timestampString = "504414867.4325"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "532"
+                  endingLineNumber = "532"
+                  offsetFromSymbolStart = "3412">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "__44-[WebRTCHelper webSocket:didReceiveMessage:]_block_invoke.296"
+                  moduleName = "WebRTCDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/qq3200341/Desktop/FLWebRTCDemo/WebRTCDemo/WebRTCHelper/WebRTCHelper.m"
+                  timestampString = "504414867.433809"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "534"
+                  endingLineNumber = "534"
+                  offsetFromSymbolStart = "56">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
